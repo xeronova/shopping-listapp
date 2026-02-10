@@ -34,10 +34,114 @@
       text-align: center;
     }
 
+    .auth-container {
+      background: white;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .auth-container h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #1a1a2e;
+      text-align: center;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-form input {
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .auth-form input:focus {
+      border-color: #6366f1;
+    }
+
+    .auth-form button {
+      padding: 14px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .auth-form button:hover {
+      background: #4f46e5;
+    }
+
+    .auth-form button:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    .auth-toggle {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .auth-toggle a {
+      color: #6366f1;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .auth-toggle a:hover {
+      text-decoration: underline;
+    }
+
+    .user-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .user-info {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .logout-btn {
+      font-size: 13px;
+      color: #ef4444;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.2s;
+      font-weight: 600;
+    }
+
+    .logout-btn:hover {
+      background: #fee2e2;
+    }
+
     .input-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
 
     .input-row input {
@@ -72,6 +176,35 @@
 
     .input-row button:active {
       transform: scale(0.95);
+    }
+
+    .store-type-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .store-type-btn {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #64748b;
+    }
+
+    .store-type-btn.active {
+      border-color: #6366f1;
+      background: #eef2ff;
+      color: #6366f1;
+      font-weight: 600;
+    }
+
+    .store-type-btn:hover {
+      border-color: #6366f1;
     }
 
     .stats {
@@ -137,8 +270,14 @@
       flex-shrink: 0;
     }
 
-    .item-text {
+    .item-content {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .item-text {
       font-size: 16px;
       color: #1e293b;
       transition: text-decoration 0.2s;
@@ -147,6 +286,24 @@
     .item.checked .item-text {
       text-decoration: line-through;
       color: #94a3b8;
+    }
+
+    .item-tag {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .item-tag.online {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .item-tag.offline {
+      background: #fef3c7;
+      color: #92400e;
     }
 
     .delete-btn {
@@ -198,10 +355,15 @@
       opacity: 0;
       transition: opacity 0.3s;
       pointer-events: none;
+      z-index: 1000;
     }
 
     .toast.show {
       opacity: 1;
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
@@ -209,21 +371,48 @@
   <div class="container">
     <h1>🛒 쇼핑 리스트</h1>
 
-    <div class="input-row">
-      <input type="text" id="itemInput" placeholder="아이템 입력..." />
-      <button id="addBtn">+</button>
+    <!-- Auth Screen -->
+    <div id="authScreen" class="auth-container">
+      <h2 id="authTitle">로그인</h2>
+      <form class="auth-form" id="authForm">
+        <input type="email" id="authEmail" placeholder="이메일" required />
+        <input type="password" id="authPassword" placeholder="비밀번호" required />
+        <button type="submit" id="authSubmitBtn">로그인</button>
+      </form>
+      <div class="auth-toggle">
+        <span id="authToggleText">계정이 없으신가요?</span>
+        <a id="authToggleLink">회원가입</a>
+      </div>
     </div>
 
-    <div class="stats">
-      <span id="statsText"></span>
-      <button class="clear-btn" id="clearChecked">완료 항목 삭제</button>
-    </div>
+    <!-- App Screen -->
+    <div id="appScreen" class="hidden">
+      <div class="user-header">
+        <div class="user-info" id="userEmail"></div>
+        <button class="logout-btn" id="logoutBtn">로그아웃</button>
+      </div>
 
-    <ul class="list" id="list"></ul>
-    <div class="loading" id="loading">불러오는 중...</div>
-    <div class="empty" id="empty" style="display:none">
-      <span class="emoji">🧺</span>
-      아직 아이템이 없어요
+      <div class="input-row">
+        <input type="text" id="itemInput" placeholder="아이템 입력..." />
+        <button id="addBtn">+</button>
+      </div>
+
+      <div class="store-type-selector">
+        <button class="store-type-btn active" data-type="offline">🏪 오프라인</button>
+        <button class="store-type-btn" data-type="online">🌐 온라인</button>
+      </div>
+
+      <div class="stats">
+        <span id="statsText"></span>
+        <button class="clear-btn" id="clearChecked">완료 항목 삭제</button>
+      </div>
+
+      <ul class="list" id="list"></ul>
+      <div class="loading" id="loading">불러오는 중...</div>
+      <div class="empty" id="empty" style="display:none">
+        <span class="emoji">🧺</span>
+        아직 아이템이 없어요
+      </div>
     </div>
   </div>
 
@@ -237,7 +426,22 @@
     const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let items = [];
+    let currentUser = null;
+    let selectedStoreType = 'offline';
+    let isSignUpMode = false;
 
+    // Elements
+    const authScreen = document.getElementById('authScreen');
+    const appScreen = document.getElementById('appScreen');
+    const authForm = document.getElementById('authForm');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const authTitle = document.getElementById('authTitle');
+    const authToggleText = document.getElementById('authToggleText');
+    const authToggleLink = document.getElementById('authToggleLink');
+    const userEmailEl = document.getElementById('userEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
     const input = document.getElementById('itemInput');
     const addBtn = document.getElementById('addBtn');
     const listEl = document.getElementById('list');
@@ -246,13 +450,94 @@
     const statsText = document.getElementById('statsText');
     const clearChecked = document.getElementById('clearChecked');
     const toastEl = document.getElementById('toast');
+    const storeTypeBtns = document.querySelectorAll('.store-type-btn');
 
+    // Toast
     function showToast(msg) {
       toastEl.textContent = msg;
       toastEl.classList.add('show');
       setTimeout(() => toastEl.classList.remove('show'), 2000);
     }
 
+    // Auth Toggle
+    authToggleLink.addEventListener('click', () => {
+      isSignUpMode = !isSignUpMode;
+      if (isSignUpMode) {
+        authTitle.textContent = '회원가입';
+        authSubmitBtn.textContent = '가입하기';
+        authToggleText.textContent = '이미 계정이 있으신가요?';
+        authToggleLink.textContent = '로그인';
+      } else {
+        authTitle.textContent = '로그인';
+        authSubmitBtn.textContent = '로그인';
+        authToggleText.textContent = '계정이 없으신가요?';
+        authToggleLink.textContent = '회원가입';
+      }
+    });
+
+    // Auth Form Submit
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = authEmail.value.trim();
+      const password = authPassword.value.trim();
+
+      if (!email || !password) return;
+
+      authSubmitBtn.disabled = true;
+      authSubmitBtn.textContent = '처리 중...';
+
+      try {
+        if (isSignUpMode) {
+          const { data, error } = await db.auth.signUp({ email, password });
+          if (error) throw error;
+          showToast('회원가입 성공! 로그인해주세요.');
+          authToggleLink.click(); // Switch to login mode
+        } else {
+          const { data, error } = await db.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          showToast('로그인 성공!');
+        }
+      } catch (error) {
+        showToast('오류: ' + error.message);
+      } finally {
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.textContent = isSignUpMode ? '가입하기' : '로그인';
+        authEmail.value = '';
+        authPassword.value = '';
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+      await db.auth.signOut();
+      showToast('로그아웃 되었습니다');
+    });
+
+    // Store Type Selection
+    storeTypeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        storeTypeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedStoreType = btn.dataset.type;
+      });
+    });
+
+    // Check Auth State
+    db.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        currentUser = session.user;
+        userEmailEl.textContent = currentUser.email;
+        authScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        loadItems();
+      } else {
+        currentUser = null;
+        authScreen.classList.remove('hidden');
+        appScreen.classList.add('hidden');
+      }
+    });
+
+    // Render Items
     function render() {
       listEl.innerHTML = '';
       loadingEl.style.display = 'none';
@@ -279,9 +564,19 @@
         checkbox.checked = item.checked;
         checkbox.addEventListener('change', () => toggle(item.id, !item.checked));
 
+        const content = document.createElement('div');
+        content.className = 'item-content';
+
         const span = document.createElement('span');
         span.className = 'item-text';
         span.textContent = item.text;
+
+        const tag = document.createElement('span');
+        tag.className = `item-tag ${item.store_type || 'offline'}`;
+        tag.textContent = item.store_type === 'online' ? '온라인' : '오프라인';
+
+        content.appendChild(span);
+        content.appendChild(tag);
 
         const delBtn = document.createElement('button');
         delBtn.className = 'delete-btn';
@@ -290,19 +585,23 @@
         delBtn.addEventListener('click', () => remove(item.id));
 
         li.appendChild(checkbox);
-        li.appendChild(span);
+        li.appendChild(content);
         li.appendChild(delBtn);
         listEl.appendChild(li);
       });
     }
 
+    // Load Items
     async function loadItems() {
+      if (!currentUser) return;
+
       loadingEl.style.display = 'block';
       emptyEl.style.display = 'none';
 
       const { data, error } = await db
         .from('shopping_items')
         .select('*')
+        .eq('user_id', currentUser.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -315,7 +614,9 @@
       render();
     }
 
+    // Add Item
     async function add() {
+      if (!currentUser) return;
       const text = input.value.trim();
       if (!text) return;
 
@@ -324,7 +625,12 @@
 
       const { data, error } = await db
         .from('shopping_items')
-        .insert({ text, checked: false })
+        .insert({
+          text,
+          checked: false,
+          user_id: currentUser.id,
+          store_type: selectedStoreType
+        })
         .select()
         .single();
 
@@ -339,6 +645,7 @@
       render();
     }
 
+    // Toggle Item
     async function toggle(id, checked) {
       const { error } = await db
         .from('shopping_items')
@@ -356,6 +663,7 @@
       render();
     }
 
+    // Remove Item
     async function remove(id) {
       const { error } = await db
         .from('shopping_items')
@@ -371,6 +679,7 @@
       render();
     }
 
+    // Clear Checked Items
     async function clearCheckedItems() {
       const checkedIds = items.filter(i => i.checked).map(i => i.id);
       if (checkedIds.length === 0) return;
@@ -389,11 +698,10 @@
       render();
     }
 
+    // Event Listeners
     addBtn.addEventListener('click', add);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
     clearChecked.addEventListener('click', clearCheckedItems);
-
-    loadItems();
   </script>
 </body>
 </html>
